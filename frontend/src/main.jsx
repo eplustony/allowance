@@ -26,6 +26,7 @@ function App() {
   const [form, setForm] = useState({ name: "", weekly: "", start: "" }); // Add Child
   const [purchase, setPurchase] = useState({ id: null, amount: "", note: "" }); // Make Purchase
   const [adjust, setAdjust] = useState({ id: null, amount: "", note: "" }); // Adjust Balance (+/-)
+  const [edit, setEdit] = useState({ id: null, weekly: "" }); // Edit Allowance
   const [history, setHistory] = useState({ id: null, entries: [] }); // View History
 
   /* ---------- load data ---------- */
@@ -111,14 +112,33 @@ function App() {
     setAdjust({ id: null, amount: "", note: "" });
   }
 
+  /* ---------- Edit weekly allowance ---------- */
+  function startEdit(childId, currentWeekly) {
+    setEdit({ id: childId, weekly: String(currentWeekly ?? "") });
+  }
+  async function confirmEdit(e) {
+    e.preventDefault();
+    const wk = parseFloat(edit.weekly || "0");
+    if (wk < 0) return;
+    await api(`/api/children/${edit.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ weekly_allowance: wk }),
+    });
+    setEdit({ id: null, weekly: "" });
+    await load();
+  }
+  function cancelEdit() {
+    setEdit({ id: null, weekly: "" });
+  }
+
   /* ---------- Delete Child ---------- */
   async function handleDelete(childId) {
     if (!confirm("Delete this child and all their history?")) return;
     await api(`/api/children/${childId}`, { method: "DELETE" });
     await load();
-    // close any open forms if they were for this child
     if (purchase.id === childId) cancelPurchase();
     if (adjust.id === childId) cancelAdjust();
+    if (edit.id === childId) cancelEdit();
     if (history.id === childId) setHistory({ id: null, entries: [] });
   }
 
@@ -196,6 +216,40 @@ function App() {
                 flexWrap: "wrap",
               }}
             >
+              {/* Edit weekly allowance */}
+              {edit.id === c.id ? (
+                <form onSubmit={confirmEdit} style={{ width: "100%" }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="Weekly allowance"
+                    value={edit.weekly}
+                    onChange={(e) =>
+                      setEdit({ ...edit, weekly: e.target.value })
+                    }
+                    required
+                  />
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    <button type="submit">Save</button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      style={{ background: "#334155" }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button
+                  onClick={() => startEdit(c.id, c.weekly_allowance)}
+                  style={{ background: "#6366f1" }}
+                >
+                  Edit Allowance
+                </button>
+              )}
+
               {/* Adjust (+/-) */}
               {adjust.id === c.id ? (
                 <form onSubmit={confirmAdjust} style={{ width: "100%" }}>
@@ -338,8 +392,8 @@ function App() {
             <button>Add</button>
           </form>
           <p className="muted" style={{ marginTop: 8 }}>
-            Tips: Use <strong>Adjust Balance</strong> for mid-week corrections or
-            bonuses. Delete Child removes all history permanently.
+            Tip: Edit Allowance changes the weekly deposit for future Sundays.
+            Use Adjust Balance for one-off corrections or bonuses.
           </p>
         </div>
       )}

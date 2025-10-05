@@ -95,6 +95,10 @@ class MoneyIn(BaseModel):
     amount: float
     note: Optional[str] = None
 
+class ChildUpdate(BaseModel):
+    name: Optional[str] = None
+    weekly_allowance: Optional[float] = None  # dollars; applied for future weeks
+
 # ---- Startup ----
 @app.on_event("startup")
 def startup_event():
@@ -213,3 +217,33 @@ def delete_child(child_id: int):
         s.delete(ch)
         s.commit()
         return {"ok": True}
+
+@app.patch("/api/children/{child_id}", response_model=ChildOut)
+def update_child(child_id: int, payload: ChildUpdate):
+    with Session(engine) as s:
+        ch = s.get(Child, child_id)
+        if not ch:
+            raise HTTPException(status_code=404, detail="Child not found")
+
+        if payload.name is not None:
+            ch.name = payload.name
+
+        if payload.weekly_allowance is not None:
+            cents = int(round(payload.weekly_allowance * 100))
+            if cents < 0:
+                raise HTTPException(status_code=400, detail="weekly_allowance must be >= 0")
+            ch.weekly_allowance_cents = cents
+            # NOTE: We do not alter last_allowance_applied. New amount applies to future Sundays.
+
+        s.add(ch)
+        s.commit()
+        s.refresh(ch)
+
+        bal = balance_cents(s, ch.id)
+        return ChildOut(
+            id=ch.id,
+            name=ch.name,
+            weekly_allowance=usd(ch.weekly_allowance_cents),
+            balance=usd(bal),
+            last_allowance_applied=ch.last_allowance_applied,
+        )
