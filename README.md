@@ -54,16 +54,17 @@ Built with **FastAPI + SQLite** (backend) and **React + Vite + Nginx** (frontend
 
 ### 2️⃣ Build & Run
 
-# Clone (or unzip)
-cd allowance
+Clone (or unzip)
+```cd allowance```
 
-# Build containers
-docker compose build
+Build containers
+```docker compose build```
 
-# Start app
-docker compose up
+Start app
+```docker compose up```
 
 Frontend: http://localhost:3000
+
 Backend: http://localhost:8000/api/health
 
 ### 3️⃣ First-Time Setup
