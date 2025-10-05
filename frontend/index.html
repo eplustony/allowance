@@ -7,15 +7,82 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Kids Allowance</title>
-    <style>
-      body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f8fafc; }
-      header { position:sticky;top:0;background:#fff;padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center; }
-      .container { max-width:700px;margin:0 auto;padding:16px; }
-      .card { background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:12px; }
-      input,button { font-size:16px;padding:10px;border-radius:10px;border:1px solid #cbd5e1; }
-      button { background:#0ea5e9;color:white;border:none; }
-      .balance { font-size:24px;font-weight:700;margin-top:4px; }
-    </style>
+
+<style>
+  /* === iOS safe area + viewport fixes === */
+  :root {
+    /* modern Safari */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+
+    /* legacy (iOS 11.2–11.4) */
+    --safe-top-legacy: constant(safe-area-inset-top, 0px);
+    --safe-right-legacy: constant(safe-area-inset-right, 0px);
+    --safe-bottom-legacy: constant(safe-area-inset-bottom, 0px);
+    --safe-left-legacy: constant(safe-area-inset-left, 0px);
+  }
+  @supports (padding: max(0px)) {
+    :root {
+      --safe-top: max(var(--safe-top), var(--safe-top-legacy));
+      --safe-right: max(var(--safe-right), var(--safe-right-legacy));
+      --safe-bottom: max(var(--safe-bottom), var(--safe-bottom-legacy));
+      --safe-left: max(var(--safe-left), var(--safe-left-legacy));
+    }
+  }
+
+  /* Viewport + base */
+  html { height: -webkit-fill-available; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f8fafc;
+
+    /* keep content clear of notch & home indicator */
+    padding-top: var(--safe-top);
+    padding-right: var(--safe-right);
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+
+    /* use dynamic viewport to avoid 100vh bugs on iOS */
+    min-height: 100dvh;
+  }
+
+  /* Header sits below the notch and keeps your original spacing */
+  header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    /* original padding + safe areas */
+    padding-top: calc(12px + var(--safe-top));
+    padding-bottom: 12px;
+    padding-left: calc(16px + var(--safe-left));
+    padding-right: calc(16px + var(--safe-right));
+    z-index: 1000;
+  }
+
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    /* keep sides off rounded corners */
+    padding-left: max(16px, calc(16px + var(--safe-left)));
+    padding-right: max(16px, calc(16px + var(--safe-right)));
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:16px; margin-bottom:12px; }
+  input, button { font-size:16px; padding:10px; border-radius:10px; border:1px solid #cbd5e1; }
+  button { background:#0ea5e9; color:white; border:none; }
+  .balance { font-size:24px; font-weight:700; margin-top:4px; }
+</style>
+
 </head>
   <body>
     <header>
