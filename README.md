@@ -86,3 +86,5 @@ Balances are stored persistently in the container volume
 Open Safari → visit http://localhost:3000
 Tap Share → Add to Home Screen
 Launch from your Home Screen — it runs fullscreen like a native app
+
+--Vibe coded using ChatGPT-5--
